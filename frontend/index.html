@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>🛍 Simple Shop</title>
     <link rel="stylesheet" href="style.css" />
+    <style>
+      /* Quick styling for layout */
+      body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+      header { background: #4caf50; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+      nav button { margin-left: 10px; padding: 5px 10px; cursor: pointer; }
+      section { padding: 20px; }
+      .products { display: flex; flex-wrap: wrap; gap: 20px; }
+      .product-card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 200px; }
+      .product-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 5px; }
+      .product-details h3 { margin: 10px 0 5px 0; font-size: 1.1em; }
+      .price { font-weight: bold; color: #e91e63; }
+      .auth input, .add-product input { display: block; width: 100%; margin-bottom: 10px; padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
+      .auth-buttons button { margin-right: 10px; padding: 8px 12px; }
+      footer { text-align: center; padding: 10px; background: #222; color: white; margin-top: 20px; }
+      .error { color: red; }
+    </style>
   </head>
   <body>
     <header>
@@ -60,76 +76,69 @@
         const name = document.getElementById("name").value;
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
-        if (!name || !email || !password)
-          return alert("Please fill all fields.");
-        const res = await fetch(`${API_BASE}/auth/signup`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password }),
-        });
-        const data = await res.json();
-        alert(data.message || "Signup successful! Please login.");
+        if (!name || !email || !password) return alert("Please fill all fields.");
+        
+        try {
+          const res = await fetch(`${API_BASE}/auth/signup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, password }),
+          });
+          const data = await res.json();
+          alert(data.message || "Signup successful! Please login.");
+        } catch (err) {
+          alert("Signup failed. Try again.");
+          console.error(err);
+        }
       }
 
       async function login() {
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
-        if (!email || !password)
-          return alert("Please enter email and password.");
-        const res = await fetch(`${API_BASE}/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-        const data = await res.json();
-        if (data.token) {
-          token = data.token;
-          userRole = data.user.role;
-          localStorage.setItem("token", token);
-          localStorage.setItem("userRole", userRole);
-          alert(`Welcome ${data.user.name || data.user.email}!`);
-          loadProducts();
-          if (userRole === "admin")
-            document.getElementById("adminSection").style.display = "block";
-        } else {
-          alert(data.message || "Login failed");
+        if (!email || !password) return alert("Please enter email and password.");
+
+        try {
+          const res = await fetch(`${API_BASE}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+          const data = await res.json();
+          if (data.token) {
+            token = data.token;
+            userRole = data.user.role;
+            localStorage.setItem("token", token);
+            localStorage.setItem("userRole", userRole);
+            alert(`Welcome ${data.user.name || data.user.email}!`);
+            loadProducts();
+            if (userRole === "admin") document.getElementById("adminSection").style.display = "block";
+          } else {
+            alert(data.message || "Login failed");
+          }
+        } catch (err) {
+          alert("Login failed. Try again.");
+          console.error(err);
         }
       }
 
       async function loadProducts() {
+        const productList = document.getElementById("productList");
         try {
           const res = await fetch(`${API_BASE}/products`);
           const products = await res.json();
-          const productList = document.getElementById("productList");
+          
           productList.innerHTML = products.map(p => {
-            // Determine image path based on product name
-            let imgPath = "./images/default.jpg";
             const nameLower = p.name.toLowerCase();
-            
-            // Map product names to images
-            const imageMap = {
-              'airpods': 'airpods.jpg',
-              'fitbit': 'fitbit.jpg',
-              'iphone': 'iphone.jpg',
-              'sony': 'sony.jpg'
-            };
-            
-            // Find matching image
-            for (const [keyword, image] of Object.entries(imageMap)) {
-              if (nameLower.includes(keyword)) {
-                imgPath = `./images/${image}`;
-                break;
-              }
-            }
-            
+            let imgPath = "./images/default.jpg";
+            if (nameLower.includes("airpods")) imgPath = "./images/airpods.jpg";
+            else if (nameLower.includes("fitbit")) imgPath = "./images/fitbit.jpg";
+            else if (nameLower.includes("iphone")) imgPath = "./images/iphone.jpg";
+            else if (nameLower.includes("sony")) imgPath = "./images/sony.jpg";
+
             return `
               <div class="product-card">
                 <div class="img-container">
-                  <img src="${imgPath}" 
-                       alt="${p.name}" 
-                       class="product-image"
-                       loading="lazy"
-                       onerror="this.onerror=null; this.src='./images/default.jpg';">
+                  <img src="${imgPath}" alt="${p.name}" class="product-image" loading="lazy" onerror="this.src='./images/default.jpg'">
                 </div>
                 <div class="product-details">
                   <h3>${p.name}</h3>
@@ -141,55 +150,58 @@
               </div>
             `;
           }).join("");
-        } catch (error) {
-          console.error("Error loading products:", error);
+        } catch (err) {
+          console.error(err);
           productList.innerHTML = '<p class="error">Failed to load products. Please try again.</p>';
         }
-      }
-            
-            productList.appendChild(card);
-          });
-        } catch (error) {
-          console.error("Error loading products:", error);
-          alert("Failed to load products. Please try again.");
-        }
-      };
-          })
-          .join("");
       }
 
       async function addProduct() {
         token = localStorage.getItem("token") || token;
         if (userRole !== "admin") return alert("Only admin can add products!");
+
         const name = document.getElementById("pname").value;
         const price = document.getElementById("pprice").value;
         const stock = document.getElementById("pstock").value;
         const description = document.getElementById("pdesc").value;
 
-        await fetch(`${API_BASE}/products`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
-          },
-          body: JSON.stringify({ name, price, stock, description }),
-        });
-        alert("Product added successfully!");
-        loadProducts();
+        try {
+          const res = await fetch(`${API_BASE}/products`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + token,
+            },
+            body: JSON.stringify({ name, price, stock, description }),
+          });
+          const data = await res.json();
+          alert(data.message || "Product added successfully!");
+          loadProducts();
+        } catch (err) {
+          alert("Failed to add product.");
+          console.error(err);
+        }
       }
 
       async function addToCart(productId) {
         token = localStorage.getItem("token") || token;
         if (!token) return alert("Please login first!");
-        await fetch(`${API_BASE}/cart/add`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
-          },
-          body: JSON.stringify({ productId }),
-        });
-        alert("Product added to cart!");
+
+        try {
+          const res = await fetch(`${API_BASE}/cart/add`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + token,
+            },
+            body: JSON.stringify({ productId }),
+          });
+          const data = await res.json();
+          alert(data.message || "Product added to cart!");
+        } catch (err) {
+          alert("Failed to add product to cart.");
+          console.error(err);
+        }
       }
 
       function logout() {
@@ -201,7 +213,8 @@
         alert("Logged out!");
       }
 
-      loadProducts();
+      // Load products when page loads
+      window.onload = loadProducts;
     </script>
   </body>
 </html>
