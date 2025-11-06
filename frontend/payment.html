@@ -7,7 +7,18 @@
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <h1>💳 Payment</h1>
+  <header>
+    <h1>🛍 Simple Shop</h1>
+    <nav>
+      <button onclick="window.location.href='index.html'">Home</button>
+      <button onclick="window.location.href='cart.html'">Cart</button>
+      <button onclick="window.location.href='payment.html'">Payment</button>
+      <button onclick="window.location.href='review.html'">Reviews</button>
+      <button onclick="logout()">Logout</button>
+    </nav>
+  </header>
+  <section>
+    <h2>💳 Payment</h2>
   <div class="payment-container">
     <h2>Payment Method</h2>
     <select id="paymentMethod">
