@@ -1,27 +1,68 @@
-# Simple E-commerce Project (Full ZIP)
-This archive contains a simple Node/Express/MongoDB backend and a minimal frontend (index.html)
-to demo products, cart, and checkout.
+# Simple E-commerce Project
 
-Quick start (development):
+A full-stack e-commerce application with Node.js/Express backend and vanilla JavaScript frontend.
 
-```powershell
-# Backend
+## Features
+
+- User Authentication (JWT)
+- Role-based access (Admin/User)
+- Product Management (CRUD)
+- Shopping Cart
+- Order Processing
+- Payment Integration
+- Image Management
+
+## Quick Start
+
+### Backend Setup
+
+1. Navigate to backend directory:
+   ```bash
+   cd backend
+   npm install
+   ```
+
+2. Create `.env` file with:
+   ```
+   MONGODB_URI=your_mongodb_uri
+   JWT_SECRET=your_jwt_secret
+   ```
+
+3. Start the server:
+   ```bash
+   npm start
+   ```
+
+Server runs on http://localhost:5000
+
+### Frontend Setup
+
+1. Open frontend/index.html in your browser
+   - You can use any static file server like:
+     ```bash
+     npx http-server frontend -p 8000
+     ```
+
+2. Access the app at http://localhost:8000
+
+## Admin Access
+
+Default admin credentials:
+- Email: admin@example.com
+- Password: admin123
+
+## Testing
+
+Run test suite:
+```bash
 cd backend
-npm install
-# Start MongoDB (local) if needed, then:
-npm run dev
-
-# Frontend (static)
-cd ..\frontend
-npm install -g http-server    # if you don't have it already
-http-server -p 8000
-
-# Seed DB (if needed)
-cd ..\backend
-node seed.js
-
-# Optional: run smoke tests
-npm run smoke-test
+npm test
 ```
 
-See `backend/README.md` for more backend-specific notes.
+## License
+
+MIT
+
+## Author
+
+Yashwanth Raj KS

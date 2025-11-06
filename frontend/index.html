@@ -13,6 +13,10 @@
       nav button { margin-left: 10px; padding: 5px 10px; cursor: pointer; }
       section { padding: 20px; }
       .products { display: flex; flex-wrap: wrap; gap: 20px; }
+      /* Modal styles */
+      .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+      .modal-content { background: white; margin: 15% auto; padding: 20px; width: 80%; max-width: 500px; border-radius: 8px; position: relative; }
+      .close-modal { position: absolute; right: 10px; top: 10px; font-size: 24px; cursor: pointer; }
       .product-card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 200px; }
       .product-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 5px; }
       .product-details h3 { margin: 10px 0 5px 0; font-size: 1.1em; }
@@ -68,6 +72,22 @@
     <footer>
       <p>© 2025 Simple Shop | Built by Yashwanth Raj KS</p>
     </footer>
+
+    <!-- Edit Product Modal -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal" onclick="closeEditModal()">&times;</span>
+        <h2>Edit Product</h2>
+        <div class="edit-product-form">
+          <input type="text" id="editName" placeholder="Product Name" />
+          <input type="text" id="editImage" placeholder="Image URL" />
+          <input type="number" id="editPrice" placeholder="Price (₹)" />
+          <input type="number" id="editStock" placeholder="Stock" />
+          <input type="text" id="editDesc" placeholder="Description" />
+          <button onclick="saveProductEdit()">Save Changes</button>
+        </div>
+      </div>
+    </div>
 
     <script>
       const API_BASE = "http://localhost:5000/api";
@@ -216,16 +236,39 @@
         }
       }
 
-      // Admin: edit product (simple prompt-based)
-      async function editProduct(productId) {
+      // Modal functions
+      function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+      }
+
+      let currentEditId = '';
+
+      // Admin: edit product with modal
+      function editProduct(productId) {
+        currentEditId = productId;
+        const product = document.querySelector(`[data-id="${productId}"]`);
+        
+        // Pre-fill the form
+        document.getElementById('editName').value = product.querySelector('h3').textContent;
+        document.getElementById('editImage').value = product.querySelector('img').src;
+        document.getElementById('editPrice').value = product.querySelector('.price').textContent.replace('₹', '');
+        document.getElementById('editStock').value = product.querySelector('p').textContent.replace('Stock: ', '');
+        document.getElementById('editDesc').value = product.querySelector('.desc').textContent;
+        
+        // Show modal
+        document.getElementById('editModal').style.display = 'block';
+      }
+
+      async function saveProductEdit() {
         token = localStorage.getItem('token') || token;
-        // Ask for new values (you can replace with a proper modal later)
-        const name = prompt('New name') || undefined;
-        const image = prompt('Image URL (leave blank to keep)') || undefined;
-        const price = prompt('Price') || undefined;
-        const stock = prompt('Stock') || undefined;
-        const description = prompt('Description') || undefined;
         const payload = {};
+        
+        const name = document.getElementById('editName').value;
+        const image = document.getElementById('editImage').value;
+        const price = document.getElementById('editPrice').value;
+        const stock = document.getElementById('editStock').value;
+        const description = document.getElementById('editDesc').value;
+        
         if (name) payload.name = name;
         if (image) payload.image = image;
         if (price) payload.price = Number(price);
