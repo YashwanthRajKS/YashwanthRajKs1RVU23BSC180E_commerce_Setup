@@ -101,12 +101,14 @@
         productList.innerHTML = products
           .map((p) => {
             let imgPath = "./images/default.jpg";
-            if (p.name.toLowerCase().includes("shirt"))
-              imgPath = "./images/tshirt.jpeg";
-            else if (p.name.toLowerCase().includes("mug"))
-              imgPath = "./images/mug.jpeg";
-            else if (p.name.toLowerCase().includes("note"))
-              imgPath = "./images/notebook.jpeg";
+            if (p.name.toLowerCase().includes("airpods"))
+              imgPath = "./images/airpods.jpg";
+            else if (p.name.toLowerCase().includes("fitbit"))
+              imgPath = "./images/fitbit.jpg";
+            else if (p.name.toLowerCase().includes("iphone"))
+              imgPath = "./images/iphone.jpg";
+            else if (p.name.toLowerCase().includes("sony"))
+              imgPath = "./images/sony.jpg";
             return `
               <div class="product-card">
                 <img src="${imgPath}" alt="${p.name}" onerror="this.src='./images/default.jpg'">
