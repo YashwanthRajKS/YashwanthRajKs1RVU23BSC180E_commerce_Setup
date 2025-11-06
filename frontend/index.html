@@ -95,23 +95,27 @@
       }
 
       async function loadProducts() {
-        const res = await fetch(`${API_BASE}/products`);
-        const products = await res.json();
-        const productList = document.getElementById("productList");
-        productList.innerHTML = products
-          .map((p) => {
-            let imgPath = "./images/default.jpg";
-            if (p.name.toLowerCase().includes("airpods"))
-              imgPath = "./images/airpods.jpg";
-            else if (p.name.toLowerCase().includes("fitbit"))
-              imgPath = "./images/fitbit.jpg";
-            else if (p.name.toLowerCase().includes("iphone"))
-              imgPath = "./images/iphone.jpg";
-            else if (p.name.toLowerCase().includes("sony"))
-              imgPath = "./images/sony.jpg";
-            return `
-              <div class="product-card">
-                <img src="${imgPath}" alt="${p.name}" onerror="this.src='./images/default.jpg'">
+        try {
+          const res = await fetch(`${API_BASE}/products`);
+          const products = await res.json();
+          const productList = document.getElementById("productList");
+          
+          // Clear existing content
+          productList.innerHTML = "";
+          
+          // Create product cards
+          products.forEach(p => {
+            const card = document.createElement("div");
+            card.className = "product-card";
+            
+            card.innerHTML = `
+              <div class="img-container">
+                <img src="./images/default.jpg" 
+                     alt="${p.name}" 
+                     class="product-image"
+                     loading="lazy">
+              </div>
+              <div class="product-details">
                 <h3>${p.name}</h3>
                 <p class="price">₹${p.price}</p>
                 <p>Stock: ${p.stock || 0}</p>
@@ -119,6 +123,14 @@
                 <button onclick="addToCart('${p._id}')">Add to Cart</button>
               </div>
             `;
+            
+            productList.appendChild(card);
+          });
+        } catch (error) {
+          console.error("Error loading products:", error);
+          alert("Failed to load products. Please try again.");
+        }
+      };
           })
           .join("");
       }
