@@ -2,14 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>🛍 Simple Shop</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <h1>🛍 Simple Shop</h1>
 
-    <!-- Login / Signup Section -->
     <div class="auth">
       <input type="text" id="name" placeholder="Full Name (for Signup)" />
       <input type="text" id="email" placeholder="Email" />
@@ -18,18 +17,9 @@
       <button onclick="signup()">Signup</button>
     </div>
 
-    <!-- Product Section -->
     <h2>Products</h2>
     <div id="productList" class="products"></div>
 
-    <!-- Cart Section -->
-    <div class="cart">
-      <h2>Cart</h2>
-      <div id="cartItems"></div>
-      <button onclick="checkout()">Checkout</button>
-    </div>
-
-    <!-- Admin Section -->
     <div class="admin">
       <h2>Admin: Add product</h2>
       <input type="text" id="pname" placeholder="name" />
@@ -41,50 +31,38 @@
 
     <script>
       const API_BASE = "http://localhost:5000/api";
-      let token = "";
-      let userRole = "";
+      let token = localStorage.getItem('token') || "";
+      let userRole = localStorage.getItem('userRole') || "";
 
-      // ✅ Signup
       async function signup() {
         const name = document.getElementById("name").value;
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
-
-        if (!name || !email || !password) {
-          alert("Please fill all fields.");
-          return;
-        }
-
+        if (!name || !email || !password) return alert("Please fill all fields.");
         const res = await fetch(`${API_BASE}/auth/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email, password }),
         });
-
         const data = await res.json();
         alert(data.message || "Signup successful! Please login.");
       }
 
-      // ✅ Login
       async function login() {
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
-
-        if (!email || !password) {
-          alert("Please enter email and password.");
-          return;
-        }
-
+        if (!email || !password) return alert("Please enter email and password.");
         const res = await fetch(`${API_BASE}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
         });
-
         const data = await res.json();
         if (data.token) {
           token = data.token;
           userRole = data.user.role;
+          localStorage.setItem("token", token);
+          localStorage.setItem("userRole", userRole);
           alert(`Welcome ${data.user.name || data.user.email}!`);
           loadProducts();
         } else {
@@ -92,38 +70,32 @@
         }
       }
 
-      // ✅ Load Products
       async function loadProducts() {
         const res = await fetch(`${API_BASE}/products`);
         const products = await res.json();
         const productList = document.getElementById("productList");
-
         productList.innerHTML = products
           .map((p) => {
-            // Use local images based on product name
             let imgPath = "./images/default.jpg";
-            if (p.name.toLowerCase().includes("shirt"))
-              imgPath = "./images/tshirt.jpeg";
-            else if (p.name.toLowerCase().includes("mug"))
-              imgPath = "./images/mug.jpeg";
-            else if (p.name.toLowerCase().includes("note"))
-              imgPath = "./images/notebook.jpeg";
-
+            if (p.name.toLowerCase().includes("shirt")) imgPath = "./images/tshirt.jpeg";
+            else if (p.name.toLowerCase().includes("mug")) imgPath = "./images/mug.jpeg";
+            else if (p.name.toLowerCase().includes("note")) imgPath = "./images/notebook.jpeg";
             return `
               <div class="product-card">
-                <img src="${imgPath}" alt="${p.name}">
+                <img src="${imgPath}" alt="${p.name}" onerror="this.src='./images/default.jpg'">
                 <h3>${p.name}</h3>
                 <p>₹${p.price}</p>
-                <p>Stock: ${p.stock}</p>
+                <p>Stock: ${p.stock || 0}</p>
                 <button onclick="addToCart('${p._id}')">Add to Cart</button>
+                <a href="review.html?id=${p._id}" class="review-link">Reviews</a>
               </div>
             `;
           })
           .join("");
       }
 
-      // ✅ Add to Cart
       async function addToCart(productId) {
+        token = localStorage.getItem('token') || token;
         if (!token) return alert("Please login first!");
         await fetch(`${API_BASE}/cart/add`, {
           method: "POST",
@@ -133,29 +105,18 @@
           },
           body: JSON.stringify({ productId }),
         });
-        alert("Added to cart!");
+        // redirect to cart page
+        window.location.href = 'cart.html';
       }
 
-      // ✅ Checkout
-      async function checkout() {
-        if (!token) return alert("Please login first!");
-        const res = await fetch(`${API_BASE}/orders/checkout`, {
-          method: "POST",
-          headers: { Authorization: "Bearer " + token },
-        });
-        const data = await res.json();
-        alert(data.message || "Order placed!");
-      }
-
-      // ✅ Add Product (Admin)
       async function addProduct() {
-        if (userRole !== "admin") return alert("Only admin can add!");
+        token = localStorage.getItem('token') || token;
+        if (localStorage.getItem('userRole') !== 'admin') return alert("Only admin can add!");
         const name = document.getElementById("pname").value;
         const price = document.getElementById("pprice").value;
         const stock = document.getElementById("pstock").value;
         const description = document.getElementById("pdesc").value;
-
-        const res = await fetch(`${API_BASE}/products`, {
+        await fetch(`${API_BASE}/products`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -163,13 +124,11 @@
           },
           body: JSON.stringify({ name, price, stock, description }),
         });
-
-        const data = await res.json();
         alert("Product added!");
         loadProducts();
       }
 
-      // Auto-load products
+      // auto-load
       loadProducts();
     </script>
   </body>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Reviews</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <h1>⭐ Leave a Review</h1>
+
+  <div id="product-title"></div>
+  <div id="reviews-list"></div>
+
+  <h2>Add Review</h2>
+  <input id="user" placeholder="Your name"/>
+  <input id="rating" type="number" min="1" max="5" placeholder="Rating 1-5"/>
+  <textarea id="comment" placeholder="Comment"></textarea>
+  <button id="submit-review">Submit Review</button>
+
+  <script>
+    const API_BASE = "http://localhost:5000/api";
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+
+    async function loadProduct() {
+      const res = await fetch(`${API_BASE}/products`);
+      const products = await res.json();
+      const product = products.find(p => p._id === id);
+      if (!product) {
+        document.getElementById('product-title').innerText = 'Product not found';
+        return;
+      }
+      document.getElementById('product-title').innerHTML = `<h2>${product.name}</h2>`;
+      document.getElementById('reviews-list').innerHTML = (product.reviews || []).map(r => 
+        `<p><strong>${r.user}</strong> (${r.rating}/5): ${r.comment}</p>`
+      ).join('');
+    }
+
+    document.getElementById('submit-review').addEventListener('click', async () => {
+      const user = document.getElementById('user').value || 'Anonymous';
+      const rating = Number(document.getElementById('rating').value);
+      const comment = document.getElementById('comment').value;
+      if (!rating || !comment) return alert('Please add rating and comment');
+      await fetch(`${API_BASE}/products/${id}/review`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ user, rating, comment })
+      });
+      alert('Review added');
+      loadProduct();
+    });
+
+    loadProduct();
+  </script>
+</body>
+</html>

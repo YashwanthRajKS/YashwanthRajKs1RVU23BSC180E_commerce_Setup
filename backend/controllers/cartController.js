@@ -6,7 +6,10 @@ exports.getCart = async (req, res) => {
     let cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
     if (!cart) cart = { items: [] };
     res.json(cart);
-  } catch (err) { res.status(500).json({ message: 'Server error' }); }
+  } catch (err) { 
+    console.error(err);
+    res.status(500).json({ message: 'Server error' }); 
+  }
 };
 
 exports.addToCart = async (req, res) => {
@@ -26,7 +29,10 @@ exports.addToCart = async (req, res) => {
     await cart.save();
     await cart.populate('items.product');
     res.json(cart);
-  } catch (err) { res.status(500).json({ message: 'Server error' }); }
+  } catch (err) { 
+    console.error(err);
+    res.status(500).json({ message: 'Server error' }); 
+  }
 };
 
 exports.removeFromCart = async (req, res) => {
@@ -38,5 +44,21 @@ exports.removeFromCart = async (req, res) => {
     await cart.save();
     await cart.populate('items.product');
     res.json(cart);
-  } catch (err) { res.status(500).json({ message: 'Server error' }); }
+  } catch (err) { 
+    console.error(err);
+    res.status(500).json({ message: 'Server error' }); 
+  }
+};
+
+exports.clearCart = async (req, res) => {
+  try {
+    const cart = await Cart.findOne({ user: req.user._id });
+    if (!cart) return res.status(404).json({ message: 'Cart not found' });
+    cart.items = [];
+    await cart.save();
+    res.json({ message: 'Cart cleared successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 };
