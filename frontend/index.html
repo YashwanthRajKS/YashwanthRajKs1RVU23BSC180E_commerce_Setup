@@ -57,6 +57,7 @@
       <h2>Admin: Add Product</h2>
       <div class="add-product">
         <input type="text" id="pname" placeholder="Product Name" />
+        <input type="text" id="pimage" placeholder="Image URL (optional)" />
         <input type="number" id="pprice" placeholder="Price (₹)" />
         <input type="number" id="pstock" placeholder="Stock" />
         <input type="text" id="pdesc" placeholder="Description" />
@@ -129,15 +130,26 @@
           const products = await res.json();
           
           productList.innerHTML = products.map(p => {
+            // Prefer stored image URL; fallback to mapping/default
+            let imgPath = p.image || './images/default.jpg';
             const nameLower = p.name.toLowerCase();
-            let imgPath = "./images/default.jpg";
-            if (nameLower.includes("airpods")) imgPath = "./images/airpods.jpg";
-            else if (nameLower.includes("fitbit")) imgPath = "./images/fitbit.jpg";
-            else if (nameLower.includes("iphone")) imgPath = "./images/iphone.jpg";
-            else if (nameLower.includes("sony")) imgPath = "./images/sony.jpg";
+            if (!p.image) {
+              if (nameLower.includes("airpods")) imgPath = "./images/airpods.jpg";
+              else if (nameLower.includes("fitbit")) imgPath = "./images/fitbit.jpg";
+              else if (nameLower.includes("iphone")) imgPath = "./images/iphone.jpg";
+              else if (nameLower.includes("sony")) imgPath = "./images/sony.jpg";
+            }
+
+            // Admin edit/delete buttons
+            const adminControls = (userRole === 'admin') ? `
+              <div style="display:flex;gap:8px;margin-top:8px;">
+                <button onclick="editProduct('${p._id}')">Edit</button>
+                <button onclick="deleteProduct('${p._id}')">Delete</button>
+              </div>
+            ` : '';
 
             return `
-              <div class="product-card">
+              <div class="product-card" data-id="${p._id}">
                 <div class="img-container">
                   <img src="${imgPath}" alt="${p.name}" class="product-image" loading="lazy" onerror="this.src='./images/default.jpg'">
                 </div>
@@ -147,6 +159,7 @@
                   <p>Stock: ${p.stock || 0}</p>
                   <p class="desc">${p.description || ""}</p>
                   <button onclick="addToCart('${p._id}')">Add to Cart</button>
+                  ${adminControls}
                 </div>
               </div>
             `;
@@ -161,10 +174,11 @@
         token = localStorage.getItem("token") || token;
         if (userRole !== "admin") return alert("Only admin can add products!");
 
-        const name = document.getElementById("pname").value;
-        const price = document.getElementById("pprice").value;
-        const stock = document.getElementById("pstock").value;
-        const description = document.getElementById("pdesc").value;
+          const name = document.getElementById("pname").value;
+          const image = document.getElementById("pimage").value || '';
+          const price = document.getElementById("pprice").value;
+          const stock = document.getElementById("pstock").value;
+          const description = document.getElementById("pdesc").value;
 
         try {
           const res = await fetch(`${API_BASE}/products`, {
@@ -173,14 +187,62 @@
               "Content-Type": "application/json",
               Authorization: "Bearer " + token,
             },
-            body: JSON.stringify({ name, price, stock, description }),
+              body: JSON.stringify({ name, price, stock, description, image }),
           });
           const data = await res.json();
-          alert(data.message || "Product added successfully!");
+            alert(data.message || "Product added successfully!");
           loadProducts();
         } catch (err) {
           alert("Failed to add product.");
           console.error(err);
+        }
+      }
+
+      // Admin: delete product
+      async function deleteProduct(productId) {
+        if (!confirm('Delete this product?')) return;
+        token = localStorage.getItem('token') || token;
+        try {
+          const res = await fetch(`${API_BASE}/products/${productId}`, {
+            method: 'DELETE',
+            headers: { Authorization: 'Bearer ' + token }
+          });
+          const data = await res.json();
+          alert(data.message || 'Product deleted');
+          loadProducts();
+        } catch (err) {
+          console.error(err);
+          alert('Failed to delete product');
+        }
+      }
+
+      // Admin: edit product (simple prompt-based)
+      async function editProduct(productId) {
+        token = localStorage.getItem('token') || token;
+        // Ask for new values (you can replace with a proper modal later)
+        const name = prompt('New name') || undefined;
+        const image = prompt('Image URL (leave blank to keep)') || undefined;
+        const price = prompt('Price') || undefined;
+        const stock = prompt('Stock') || undefined;
+        const description = prompt('Description') || undefined;
+        const payload = {};
+        if (name) payload.name = name;
+        if (image) payload.image = image;
+        if (price) payload.price = Number(price);
+        if (stock) payload.stock = Number(stock);
+        if (description) payload.description = description;
+        try {
+          const res = await fetch(`${API_BASE}/products/${productId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          alert('Product updated');
+          loadProducts();
+        } catch (err) {
+          console.error(err);
+          alert('Failed to update product');
         }
       }
 

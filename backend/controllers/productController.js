@@ -32,3 +32,34 @@ exports.addReview = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+// Admin: update product
+exports.update = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, price, stock, description, image } = req.body;
+    const product = await Product.findByIdAndUpdate(
+      id,
+      { name, price, stock, description, image },
+      { new: true }
+    );
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    res.json(product);
+  } catch (err) {
+    console.error('Product update error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Admin: remove product
+exports.remove = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findByIdAndDelete(id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    res.json({ message: 'Product deleted successfully' });
+  } catch (err) {
+    console.error('Product delete error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
