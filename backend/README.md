@@ -9,6 +9,16 @@
 ## Seed
 Run `node seed.js` to create an admin user (admin@example.com / admin123) and sample products.
 
+## Smoke tests
+After starting the backend you can run a quick smoke test that exercises auth, product CRUD, cart and checkout:
+
+```powershell
+cd backend
+npm run smoke-test
+```
+
+The smoke test script is at `backend/tools/smokeTest.js` and will log progress and exit with non-zero on failure.
+
 ## Endpoints
 - POST /api/auth/signup
 - POST /api/auth/login
