@@ -99,30 +99,51 @@
           const res = await fetch(`${API_BASE}/products`);
           const products = await res.json();
           const productList = document.getElementById("productList");
-          
-          // Clear existing content
-          productList.innerHTML = "";
-          
-          // Create product cards
-          products.forEach(p => {
-            const card = document.createElement("div");
-            card.className = "product-card";
+          productList.innerHTML = products.map(p => {
+            // Determine image path based on product name
+            let imgPath = "./images/default.jpg";
+            const nameLower = p.name.toLowerCase();
             
-            card.innerHTML = `
-              <div class="img-container">
-                <img src="./images/default.jpg" 
-                     alt="${p.name}" 
-                     class="product-image"
-                     loading="lazy">
-              </div>
-              <div class="product-details">
-                <h3>${p.name}</h3>
-                <p class="price">₹${p.price}</p>
-                <p>Stock: ${p.stock || 0}</p>
-                <p class="desc">${p.description || ""}</p>
-                <button onclick="addToCart('${p._id}')">Add to Cart</button>
+            // Map product names to images
+            const imageMap = {
+              'airpods': 'airpods.jpg',
+              'fitbit': 'fitbit.jpg',
+              'iphone': 'iphone.jpg',
+              'sony': 'sony.jpg'
+            };
+            
+            // Find matching image
+            for (const [keyword, image] of Object.entries(imageMap)) {
+              if (nameLower.includes(keyword)) {
+                imgPath = `./images/${image}`;
+                break;
+              }
+            }
+            
+            return `
+              <div class="product-card">
+                <div class="img-container">
+                  <img src="${imgPath}" 
+                       alt="${p.name}" 
+                       class="product-image"
+                       loading="lazy"
+                       onerror="this.onerror=null; this.src='./images/default.jpg';">
+                </div>
+                <div class="product-details">
+                  <h3>${p.name}</h3>
+                  <p class="price">₹${p.price}</p>
+                  <p>Stock: ${p.stock || 0}</p>
+                  <p class="desc">${p.description || ""}</p>
+                  <button onclick="addToCart('${p._id}')">Add to Cart</button>
+                </div>
               </div>
             `;
+          }).join("");
+        } catch (error) {
+          console.error("Error loading products:", error);
+          productList.innerHTML = '<p class="error">Failed to load products. Please try again.</p>';
+        }
+      }
             
             productList.appendChild(card);
           });
