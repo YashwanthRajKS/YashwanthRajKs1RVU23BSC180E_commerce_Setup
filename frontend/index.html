@@ -2,43 +2,64 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>🛍 Simple Shop</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>🛍 Simple Shop</h1>
+    <header>
+      <h1>🛍 Simple Shop</h1>
+      <nav>
+        <button onclick="loadProducts()">Home</button>
+        <button onclick="window.location.href='cart.html'">Cart</button>
+        <button onclick="logout()">Logout</button>
+      </nav>
+    </header>
 
-    <div class="auth">
-      <input type="text" id="name" placeholder="Full Name (for Signup)" />
-      <input type="text" id="email" placeholder="Email" />
-      <input type="password" id="password" placeholder="Password" />
-      <button onclick="login()">Login</button>
-      <button onclick="signup()">Signup</button>
-    </div>
+    <section class="auth-section">
+      <h2>Login / Signup</h2>
+      <div class="auth">
+        <input type="text" id="name" placeholder="Full Name (for Signup)" />
+        <input type="text" id="email" placeholder="Email" />
+        <input type="password" id="password" placeholder="Password" />
+        <div class="auth-buttons">
+          <button onclick="login()">Login</button>
+          <button onclick="signup()">Signup</button>
+        </div>
+      </div>
+    </section>
 
-    <h2>Products</h2>
-    <div id="productList" class="products"></div>
+    <section>
+      <h2>Products</h2>
+      <div id="productList" class="products"></div>
+    </section>
 
-    <div class="admin">
-      <h2>Admin: Add product</h2>
-      <input type="text" id="pname" placeholder="name" />
-      <input type="number" id="pprice" placeholder="price" />
-      <input type="number" id="pstock" placeholder="stock" />
-      <input type="text" id="pdesc" placeholder="description" />
-      <button onclick="addProduct()">Add (admin)</button>
-    </div>
+    <section class="admin" id="adminSection" style="display: none;">
+      <h2>Admin: Add Product</h2>
+      <div class="add-product">
+        <input type="text" id="pname" placeholder="Product Name" />
+        <input type="number" id="pprice" placeholder="Price (₹)" />
+        <input type="number" id="pstock" placeholder="Stock" />
+        <input type="text" id="pdesc" placeholder="Description" />
+        <button onclick="addProduct()">Add Product</button>
+      </div>
+    </section>
+
+    <footer>
+      <p>© 2025 Simple Shop | Built by Yashwanth Raj KS</p>
+    </footer>
 
     <script>
       const API_BASE = "http://localhost:5000/api";
-      let token = localStorage.getItem('token') || "";
-      let userRole = localStorage.getItem('userRole') || "";
+      let token = localStorage.getItem("token") || "";
+      let userRole = localStorage.getItem("userRole") || "";
 
       async function signup() {
         const name = document.getElementById("name").value;
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
-        if (!name || !email || !password) return alert("Please fill all fields.");
+        if (!name || !email || !password)
+          return alert("Please fill all fields.");
         const res = await fetch(`${API_BASE}/auth/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -51,7 +72,8 @@
       async function login() {
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
-        if (!email || !password) return alert("Please enter email and password.");
+        if (!email || !password)
+          return alert("Please enter email and password.");
         const res = await fetch(`${API_BASE}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -65,6 +87,8 @@
           localStorage.setItem("userRole", userRole);
           alert(`Welcome ${data.user.name || data.user.email}!`);
           loadProducts();
+          if (userRole === "admin")
+            document.getElementById("adminSection").style.display = "block";
         } else {
           alert(data.message || "Login failed");
         }
@@ -77,25 +101,48 @@
         productList.innerHTML = products
           .map((p) => {
             let imgPath = "./images/default.jpg";
-            if (p.name.toLowerCase().includes("shirt")) imgPath = "./images/tshirt.jpeg";
-            else if (p.name.toLowerCase().includes("mug")) imgPath = "./images/mug.jpeg";
-            else if (p.name.toLowerCase().includes("note")) imgPath = "./images/notebook.jpeg";
+            if (p.name.toLowerCase().includes("shirt"))
+              imgPath = "./images/tshirt.jpeg";
+            else if (p.name.toLowerCase().includes("mug"))
+              imgPath = "./images/mug.jpeg";
+            else if (p.name.toLowerCase().includes("note"))
+              imgPath = "./images/notebook.jpeg";
             return `
               <div class="product-card">
                 <img src="${imgPath}" alt="${p.name}" onerror="this.src='./images/default.jpg'">
                 <h3>${p.name}</h3>
-                <p>₹${p.price}</p>
+                <p class="price">₹${p.price}</p>
                 <p>Stock: ${p.stock || 0}</p>
+                <p class="desc">${p.description || ""}</p>
                 <button onclick="addToCart('${p._id}')">Add to Cart</button>
-                <a href="review.html?id=${p._id}" class="review-link">Reviews</a>
               </div>
             `;
           })
           .join("");
       }
 
+      async function addProduct() {
+        token = localStorage.getItem("token") || token;
+        if (userRole !== "admin") return alert("Only admin can add products!");
+        const name = document.getElementById("pname").value;
+        const price = document.getElementById("pprice").value;
+        const stock = document.getElementById("pstock").value;
+        const description = document.getElementById("pdesc").value;
+
+        await fetch(`${API_BASE}/products`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+          body: JSON.stringify({ name, price, stock, description }),
+        });
+        alert("Product added successfully!");
+        loadProducts();
+      }
+
       async function addToCart(productId) {
-        token = localStorage.getItem('token') || token;
+        token = localStorage.getItem("token") || token;
         if (!token) return alert("Please login first!");
         await fetch(`${API_BASE}/cart/add`, {
           method: "POST",
@@ -105,30 +152,18 @@
           },
           body: JSON.stringify({ productId }),
         });
-        // redirect to cart page
-        window.location.href = 'cart.html';
+        alert("Product added to cart!");
       }
 
-      async function addProduct() {
-        token = localStorage.getItem('token') || token;
-        if (localStorage.getItem('userRole') !== 'admin') return alert("Only admin can add!");
-        const name = document.getElementById("pname").value;
-        const price = document.getElementById("pprice").value;
-        const stock = document.getElementById("pstock").value;
-        const description = document.getElementById("pdesc").value;
-        await fetch(`${API_BASE}/products`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
-          },
-          body: JSON.stringify({ name, price, stock, description }),
-        });
-        alert("Product added!");
-        loadProducts();
+      function logout() {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userRole");
+        token = "";
+        userRole = "";
+        document.getElementById("adminSection").style.display = "none";
+        alert("Logged out!");
       }
 
-      // auto-load
       loadProducts();
     </script>
   </body>

@@ -1,53 +1,31 @@
-const mongoose = require('mongoose');
-const Product = require('./models/Product');
-const connectDB = require('./config/db');
+// backend/seedProducts.js
+require('dotenv').config(); // ✅ must be the first line
 
-connectDB();
+const mongoose = require('mongoose');
+const connectDB = require('./config/db');
+const Product = require('./models/Product');
 
 const seedProducts = async () => {
   try {
+    // Connect to DB using MONGO_URI from .env
+    await connectDB();
+
+    // Delete old data
     await Product.deleteMany();
 
+    // Insert sample data
     const products = [
-      {
-        name: 'Apple AirPods Pro',
-        price: 249,
-        description: 'Noise-cancelling wireless earbuds with adaptive sound.',
-        image: '/images/airpods.jpg',
-        category: 'Electronics',
-        countInStock: 25
-      },
-      {
-        name: 'Fitbit Charge 6',
-        price: 159,
-        description: 'Fitness tracker with heart rate, sleep, and activity monitoring.',
-        image: '/images/fitbit.jpg',
-        category: 'Wearables',
-        countInStock: 40
-      },
-      {
-        name: 'Sony WH-1000XM5',
-        price: 399,
-        description: 'Premium wireless noise-cancelling headphones.',
-        image: '/images/sony_wh1000xm5.jpg',
-        category: 'Audio',
-        countInStock: 15
-      },
-      {
-        name: 'iPhone 15 Pro',
-        price: 999,
-        description: 'Apple flagship smartphone with A17 Pro chip and advanced camera.',
-        image: '/images/iphone15pro.jpg',
-        category: 'Mobiles',
-        countInStock: 10
-      }
+      { name: 'Apple AirPods Pro', price: 249, stock: 25, image: '/images/airpods.jpg' },
+      { name: 'Fitbit Charge 6', price: 159, stock: 40, image: '/images/fitbit.jpg' },
+      { name: 'Sony WH-1000XM5', price: 399, stock: 15, image: '/images/sony.jpg' },
+      { name: 'iPhone 15 Pro', price: 999, stock: 10, image: '/images/iphone.jpg' },
     ];
 
     await Product.insertMany(products);
     console.log('✅ Products seeded successfully!');
     process.exit();
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error('❌ Seeding error:', error.message);
     process.exit(1);
   }
 };
