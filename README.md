@@ -66,3 +66,44 @@ MIT
 ## Author
 
 Yashwanth Raj KS
+# 🛍️ E-Commerce API Project
+
+## 📘 Overview
+This project is a full-stack e-commerce platform with **Node.js, Express, and MongoDB** backend, and a static **HTML/CSS frontend**.
+
+---
+
+## 🚀 API Endpoints
+
+| **Feature** | **Method** | **Endpoint** | **Description** | **Access** |
+|--------------|-------------|---------------|-----------------|-------------|
+| Signup | POST | `/api/auth/signup` | Register a new user | Public |
+| Login | POST | `/api/auth/login` | Authenticate and get JWT token | Public |
+| Get Users | GET | `/api/users` | Fetch all users | Admin |
+| Get Products | GET | `/api/products` | Fetch all products | Public |
+| Add Product | POST | `/api/products` | Add a new product | Admin |
+| Update Product | PUT | `/api/products/:id` | Update product details | Admin |
+| Delete Product | DELETE | `/api/products/:id` | Delete a product | Admin |
+| Add to Cart | POST | `/api/cart/add` | Add a product to cart | User |
+| View Cart | GET | `/api/cart` | Get user’s cart items | User |
+| Checkout | POST | `/api/orders/checkout` | Place an order | User |
+
+---
+
+## 🗄️ Database
+MongoDB database with collections:
+- `users`
+- `products`
+- `orders`
+- `cart`
+
+---
+
+## 👤 Seeded Accounts
+| Role | Email | Password |
+|------|--------|-----------|
+| Admin | `admin@example.com` | `admin123` |
+| User | `testuser@example.com` | `test123` |
+
+---
+
